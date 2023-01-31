@@ -3,27 +3,31 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
+	"path/filepath"
 	"regexp"
+	"time"
 )
 
 func main() {
-
-	pwd, _ := os.Getwd()
-	f, err := ioutil.ReadDir(pwd)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	for i := 0; i < len(f); i++ {
-		r, _ := ioutil.ReadFile(f[i].Name())
-		exp, _ := regexp.Compile(`[a-zA-z]+://[^\s]*`)
+	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		time.Sleep(1)
+		r, _ := ioutil.ReadFile(path)
+		exp, _ := regexp.Compile(`http[s]{0,1}://(([a-zA-Z0-9\._-]+\.[a-zA-Z]{2,6})|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(:[0-9]{1,4})*(/[a-zA-Z0-9\&%_\./-~-]*)?`)
+		//exp, _ := regexp.Compile(`"[.][.]/[.][.]/(\w+\W+){4}\w+"`) ../../
+		//exp, _ := regexp.Compile("[.]/(\\w+\\W+){3}\\w+")  ././
+		//exp, _ := regexp.Compile("/(\\w+\\W+){2}\\w+") /x/x/
 		match := exp.FindAllString(string(r), -1)
 		for z, _ := range match {
 			a := match[z]
 			fmt.Println(a)
-
 		}
+		return nil
+	})
+	if err != nil {
+		return
 	}
 }
